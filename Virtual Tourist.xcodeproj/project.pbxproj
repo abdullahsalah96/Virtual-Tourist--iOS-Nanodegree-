@@ -19,6 +19,8 @@
 		556B079524562EDB000DDDF1 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556B079424562EDB000DDDF1 /* DataController.swift */; };
 		556B0797245670F4000DDDF1 /* FlickerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556B0796245670F4000DDDF1 /* FlickerAPI.swift */; };
 		556B079A245689FD000DDDF1 /* ImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556B0799245689FD000DDDF1 /* ImageCell.swift */; };
+		556B079D245777F0000DDDF1 /* Pin+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556B079C245777F0000DDDF1 /* Pin+Extensions.swift */; };
+		556B079F245777FB000DDDF1 /* Photo+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556B079E245777FB000DDDF1 /* Photo+Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,8 @@
 		556B079424562EDB000DDDF1 /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
 		556B0796245670F4000DDDF1 /* FlickerAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlickerAPI.swift; sourceTree = "<group>"; };
 		556B0799245689FD000DDDF1 /* ImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCell.swift; sourceTree = "<group>"; };
+		556B079C245777F0000DDDF1 /* Pin+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Pin+Extensions.swift"; sourceTree = "<group>"; };
+		556B079E245777FB000DDDF1 /* Photo+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +117,8 @@
 			children = (
 				556B078C24562793000DDDF1 /* VirtualTourist.xcdatamodeld */,
 				556B079424562EDB000DDDF1 /* DataController.swift */,
+				556B079C245777F0000DDDF1 /* Pin+Extensions.swift */,
+				556B079E245777FB000DDDF1 /* Photo+Extensions.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -207,6 +213,8 @@
 				556B079524562EDB000DDDF1 /* DataController.swift in Sources */,
 				5500C3AE245550FC0049D3EB /* LocationsViewController.swift in Sources */,
 				556B079A245689FD000DDDF1 /* ImageCell.swift in Sources */,
+				556B079F245777FB000DDDF1 /* Photo+Extensions.swift in Sources */,
+				556B079D245777F0000DDDF1 /* Pin+Extensions.swift in Sources */,
 				556B079024562ACE000DDDF1 /* ImageResponse.swift in Sources */,
 				556B078E24562793000DDDF1 /* VirtualTourist.xcdatamodeld in Sources */,
 				5500C3AA245550FC0049D3EB /* AppDelegate.swift in Sources */,

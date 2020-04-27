@@ -10,37 +10,36 @@ import UIKit
 import MapKit
 import CoreData
 
-class LocationsViewController: UIViewController {
+class LocationsViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     var dataController: DataController = DataController.shared
-    var pins: [Pin] = []
-    var fetchRequest:NSFetchRequest<Pin>!
+    var fetchResultsController: NSFetchedResultsController<Pin>!
     var photoResponses: [PhotoResponse] = []
     var selectedPin: Pin!
-    let numOfImagesToDsiplay = 100
+    let numOfImagesToDsiplay = 20
 
     @IBOutlet weak var mapView: MKMapView!
     override func viewDidLoad() {
         super.viewDidLoad()
         self.configureView()
-        configureFetchRequest()
+        configureFetchResultsController()
         initializeMapView()
     }
     
-    func configureFetchRequest(){
+    func configureFetchResultsController(){
         //create fetch request
         //sort descriptor and attach it
+        let fetchRequest:NSFetchRequest<Pin>!
         let sortDescriptor = NSSortDescriptor(key: "createdAt", ascending: false)
         fetchRequest = Pin.fetchRequest()
         fetchRequest.sortDescriptors = [sortDescriptor]
-        if let result = try? dataController.viewContext.fetch(fetchRequest){
-            //if there are saved pins, load them
-            pins = result
-            //initialize current pin to first one in results
-            if result.count > 0{
-                selectedPin = pins[0]
-            }
-            //reload map
+        fetchResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        fetchResultsController.delegate = self
+        do{
+            try fetchResultsController.performFetch()
+            selectedPin = fetchResultsController.object(at: IndexPath(item: 0, section: 0))
+        }catch{
+            fatalError("Failed to load data from memory")
         }
     }
     
@@ -52,18 +51,21 @@ class LocationsViewController: UIViewController {
 
 }
 
+// -------------------------------------------------------------------------
+// MARK: - MAP VIEW DELEGATE AND FUNCTIONS
+
 extension LocationsViewController: MKMapViewDelegate{
     //customize pins
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
        let reuseId = "pin"
        var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
        if pinView == nil {
-            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
-            pinView?.isEnabled = true
-            pinView!.pinTintColor = .red
-            pinView!.canShowCallout = true
-            pinView!.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
-        return pinView
+        //Styling of pins
+        pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
+        pinView?.isEnabled = true
+        pinView!.pinTintColor = .red
+        pinView!.canShowCallout = true
+        pinView!.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
        }
        else {
            pinView!.annotation = annotation
@@ -73,9 +75,11 @@ extension LocationsViewController: MKMapViewDelegate{
         
     // This delegate method is implemented to respond to taps. as to direct to media type
     func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+        //getting latitude and longitude
         let long = (view.annotation?.coordinate.longitude)!
         let lat = (view.annotation?.coordinate.latitude)!
         getLocation(long: long, lat: lat, completion: {
+            //getting geographical location
             location in
             //set it as current pin
             self.selectedPin.latitude = lat
@@ -84,6 +88,7 @@ extension LocationsViewController: MKMapViewDelegate{
                 self.selectedPin.location = loc
             }
             if control == view.rightCalloutAccessoryView {
+                //moving to photo album
                 self.performSegue(withIdentifier: "pinSegue", sender: nil)
             }
         })
@@ -91,7 +96,9 @@ extension LocationsViewController: MKMapViewDelegate{
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let vc = segue.destination as? PhotoAlbumViewController{
-            vc.pin = selectedPin
+            guard selectedPin != nil else{return}
+            vc.pin = selectedPin //setting photo album pin
+//            vc.configureFetchResultsController() //fetch results so they are ready before loading view
             //get images
             FlickerAPI.getImagesResponse(long: selectedPin.longitude, lat: selectedPin.latitude, page: 1, perPage: numOfImagesToDsiplay, completionHandler: {
                 (responses, error) in
@@ -106,6 +113,7 @@ extension LocationsViewController: MKMapViewDelegate{
     
     func initializeMapView(){
         //display saved pins
+        let pins = fetchResultsController.fetchedObjects!
         if pins.count > 0{
             for index in 0...(pins.count-1) {
                 let pin = pins[index]
@@ -135,7 +143,7 @@ extension LocationsViewController: MKMapViewDelegate{
     func displayPinOnMap(long:Double, lat: Double, location:String){
         //parse data
         //create a variable for annotations
-        // The lat and long are used to create a CLLocationCoordinates2D instance.
+        //The lat and long are used to create a CLLocationCoordinates2D instance.
         let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
@@ -146,6 +154,7 @@ extension LocationsViewController: MKMapViewDelegate{
     }
     
     func getLocation(long: Double, lat: Double, completion: @escaping (String?)->Void){
+        //this function is used to get country and city string to be displayed on pin
         var location = ""
         let geoCoder = CLGeocoder()
         let waypoint = CLLocation(latitude: lat, longitude: long)
@@ -174,13 +183,11 @@ extension LocationsViewController: MKMapViewDelegate{
     }
     
     func savePin(long: Double, lat: Double, location: String){
-        //get city and country and save
+        //get city and country and save pin to data model
         let pin = Pin(context: dataController.viewContext)
         pin.longitude = long
         pin.latitude = lat
         pin.location = location
-        pin.createdAt = Date()
-        pins.insert(pin, at: 0)
         do{
             try dataController.viewContext.save()
         }catch{
