@@ -73,7 +73,7 @@
 				556B078B24562780000DDDF1 /* Model */,
 				5500C3BD245551100049D3EB /* Controller */,
 				556B0798245689E3000DDDF1 /* View */,
-				5500C3AF245550FC0049D3EB /* Main.storyboard */,
+				556B079B2456B714000DDDF1 /* StoryBoard */,
 				5500C3B2245550FF0049D3EB /* Assets.xcassets */,
 				5500C3B4245550FF0049D3EB /* LaunchScreen.storyboard */,
 				5500C3B7245550FF0049D3EB /* Info.plist */,
@@ -95,7 +95,6 @@
 			children = (
 				556B0796245670F4000DDDF1 /* FlickerAPI.swift */,
 				556B079324562EC0000DDDF1 /* Data */,
-				556B078C24562793000DDDF1 /* VirtualTourist.xcdatamodeld */,
 				556B079224562EAE000DDDF1 /* Responses */,
 			);
 			path = Model;
@@ -112,6 +111,7 @@
 		556B079324562EC0000DDDF1 /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				556B078C24562793000DDDF1 /* VirtualTourist.xcdatamodeld */,
 				556B079424562EDB000DDDF1 /* DataController.swift */,
 			);
 			path = Data;
@@ -123,6 +123,14 @@
 				556B0799245689FD000DDDF1 /* ImageCell.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		556B079B2456B714000DDDF1 /* StoryBoard */ = {
+			isa = PBXGroup;
+			children = (
+				5500C3AF245550FC0049D3EB /* Main.storyboard */,
+			);
+			path = StoryBoard;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

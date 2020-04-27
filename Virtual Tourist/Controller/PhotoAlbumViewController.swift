@@ -6,6 +6,11 @@
 //  Copyright © 2020 Abdalla Elshikh. All rights reserved.
 //
 
+//TODO:
+//1- LOAD/SAVE DATA IN MEMEORY
+//2- DELETE DATA
+//3- MIGRATE TO USING FETCH REQUEST CONTROLLER
+
 import UIKit
 import CoreData
 
@@ -28,24 +33,11 @@ class PhotoAlbumViewController: UIViewController {
         self.activityIndicator.startAnimating()
     }
     
-    func initCollectionView(){
-//        FlickerAPI.getImages(long: pin.longitude, lat: pin.latitude, perPage: 2, completionHandler: {
-//            (responses,error) in
-//            if let responses = responses{
-//                self.images = responses
-//                print(responses.count)
-//                print("reloading collection view")
-//                self.collectionView.reloadData()
-//            }
-//        })
-    }
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         print("Latitude: \(pin.latitude)")
         print("Longitude: \(pin.longitude)")
         print("Location: \(pin.location!)")
-        initCollectionView()
     }
     
     func configureFetchRequest(){
@@ -58,10 +50,10 @@ class PhotoAlbumViewController: UIViewController {
         let predicate = NSPredicate(format: "pin == %@", pin)
         fetchRequest.predicate = predicate
         if let result = try? dataController.viewContext.fetch(fetchRequest){
-            //if there are saved pins, load them
-//            photos = result
-//            print(photos.count)
-            //reload map
+//            if there are saved pins, load them
+            photos = result
+            print(photos.count)
+//            reload collection view
         }
     }
     
@@ -69,9 +61,19 @@ class PhotoAlbumViewController: UIViewController {
         //configure UI
     }
     
-    @IBAction func newCollectionPressed(_ sender: Any) {
+    @IBAction func newCollectionPressed(_ sender:Any){
         //fetch new set of images
-        self.collectionView.reloadData()
+        //get random page number
+        let page = FlickerAPI.getRandomPage()
+        print("Random Page: \(page)")
+        FlickerAPI.getImagesResponse(long: pin.longitude, lat: pin.latitude, page:page, perPage: self.photoResponses.count, completionHandler: {
+            (responses, error) in
+            //check if responses not nill set them in collection view class
+            if let responses = responses{
+                self.photoResponses = responses
+                self.collectionView.reloadData()
+            }
+        })
     }
     
 }
@@ -85,6 +87,7 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath)
         //delete image
+        collectionView.deleteItems(at: [indexPath])
 //        collectionView.remove
     }
     
@@ -101,6 +104,7 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
                 self.activityIndicator.isHidden = true
             }
         })
+        self.activityIndicator.isHidden = true
         return cell
     }
 }

@@ -10,15 +10,17 @@ import Foundation
 import UIKit
 
 class FlickerAPI {
+    
+    static var numOfPages:Int!
         
     enum Endpoints{
-        case searchImages(long: Double, lat: Double, perPage: Int, contentType: Int)
+        case searchImages(long: Double, lat: Double, page: Int, perPage: Int, contentType: Int)
         static let apiKey = "192f95443a4cb57e5996a1e7207b5735"
         static let baseURL = "https://api.flickr.com/services/rest/?&method=flickr.photos.search"
         var StringValue: String{
             switch self {
-            case .searchImages(let long, let lat, let perPage, let contentType):
-                return Endpoints.baseURL + "&api_key=\(Endpoints.apiKey)" + "&lat=\(lat)" + "&lon=\(long)" + "&radius=20" + "&per_page=\(perPage)" + "&content_type=\(contentType)" + "&format=json&nojsoncallback=1&extras=url_m"
+            case .searchImages(let long, let lat, let page, let perPage, let contentType):
+                return Endpoints.baseURL + "&api_key=\(Endpoints.apiKey)" + "&lat=\(lat)" + "&lon=\(long)" + "&radius=20" + "&page=\(page)" + "&per_page=\(perPage)" + "&content_type=\(contentType)" + "&format=json&nojsoncallback=1&extras=url_m"
             }
         }
         var url: URL{
@@ -26,9 +28,9 @@ class FlickerAPI {
         }
     }
     
-    class func getImagesResponse(long: Double, lat: Double, perPage: Int, completionHandler: @escaping ([PhotoResponse]?,Error?) -> Void){
+    class func getImagesResponse(long: Double, lat: Double, page: Int, perPage: Int, completionHandler: @escaping ([PhotoResponse]?,Error?) -> Void){
         
-        var request = URLRequest(url: Endpoints.searchImages(long: long, lat: lat, perPage: perPage, contentType: 1).url)
+        var request = URLRequest(url: Endpoints.searchImages(long: long, lat: lat, page: page, perPage: perPage, contentType: 1).url)
         request.httpMethod = "GET"
         let task = URLSession.shared.dataTask(with: request, completionHandler: {(data,response,error) in
             guard let data = data else{
@@ -41,6 +43,8 @@ class FlickerAPI {
             do{
                 //try fetching response
                 let response = try JSONDecoder().decode(ImageResponse.self, from: data)
+                //set num of available pages
+                numOfPages = response.photos.pages
                 DispatchQueue.main.async {
                     completionHandler(response.photos.photo, nil)
                 }
@@ -54,6 +58,10 @@ class FlickerAPI {
         task.resume()
     }
 
+    class func getRandomPage()->Int{
+        return Int.random(in: 1...numOfPages)
+    }
+    
     class func getImageAt(index: Int,  response: [PhotoResponse], completionHandler: @escaping (UIImage?,Error?) -> Void){
         let imgURL = URL(string: response[index].url_m)
         let q = DispatchQueue.global(qos: .userInteractive)
@@ -71,37 +79,5 @@ class FlickerAPI {
             }
         }
     }
-    
-//    class func getImages(long: Double, lat: Double, perPage: Int, completionHandler: @escaping ([UIImage]?,Error?) -> Void){
-//        var imgs:[UIImage] = []
-//        getImagesResponse(long: long, lat: lat, perPage: perPage, completionHandler: {
-//            (responses,error) in
-//            guard let responses = responses else{
-//                completionHandler(nil, error)
-//                return
-//            }
-//            // download images in background
-//            let q = DispatchQueue.global(qos: .userInteractive)
-//            q.async {
-//                for response in responses{
-//                    let url = URL(string: response.url_m)
-//                    do{
-//                        let imgData = try Data(contentsOf: url!)
-//                        let img = UIImage(data: imgData)
-//                        imgs.append(img!)
-//                    }catch{
-//                        DispatchQueue.main.async {
-//                            completionHandler(nil, error)
-//                        }
-//                        return
-//                    }
-//                }
-//                DispatchQueue.main.async {
-//                    completionHandler(imgs, nil)
-//                }
-//            }
-//        })
-//    }
-//}
 }
 

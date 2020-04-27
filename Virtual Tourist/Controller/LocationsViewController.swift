@@ -93,7 +93,7 @@ extension LocationsViewController: MKMapViewDelegate{
         if let vc = segue.destination as? PhotoAlbumViewController{
             vc.pin = selectedPin
             //get images
-            FlickerAPI.getImagesResponse(long: selectedPin.longitude, lat: selectedPin.latitude, perPage: numOfImagesToDsiplay, completionHandler: {
+            FlickerAPI.getImagesResponse(long: selectedPin.longitude, lat: selectedPin.latitude, page: 1, perPage: numOfImagesToDsiplay, completionHandler: {
                 (responses, error) in
                 //check if responses not nill set them in collection view class
                 if let responses = responses{
