@@ -41,7 +41,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         print("Location: \(pin.location!)")
         let fetchRequest:NSFetchRequest<Photo>!
         let sortDescriptor = NSSortDescriptor(key: "createdAt", ascending: false)
-        let predicate = NSPredicate(format: "pin == %@", pin)
+        let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin])
         fetchRequest = Photo.fetchRequest()
         fetchRequest.sortDescriptors = [sortDescriptor]
         fetchRequest.predicate = predicate
@@ -57,8 +57,10 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
             isDataSaved = true
             print("FETCH RESULTS Count ? : \(results.count)")
         }else{
+            print("No data saved")
             isDataSaved = false
         }
+        print(isDataSaved)
         self.collectionView.reloadData()
     }
     
@@ -69,11 +71,16 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     }
     
     func savePhoto(image: UIImage){
-        let photo = Photo(context: pin.managedObjectContext!)
+        let photo = Photo(context: dataController.viewContext)
         photo.photo = image.pngData()
         photo.createdAt = Date()
         photo.pin = self.pin
-        try? dataController.viewContext.save()
+        do{
+            try dataController.viewContext.save()
+            print("Saving picture")
+        }catch{
+            print("Can't save picture")
+        }
     }
     
     @IBAction func newCollectionPressed(_ sender:Any){

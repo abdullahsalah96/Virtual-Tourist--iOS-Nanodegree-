@@ -45,6 +45,7 @@ class FlickerAPI {
                 let response = try JSONDecoder().decode(ImageResponse.self, from: data)
                 //set num of available pages
                 numOfPages = response.photos.pages
+                print("Number of pages \(numOfPages)")
                 DispatchQueue.main.async {
                     completionHandler(response.photos.photo, nil)
                 }
@@ -59,6 +60,7 @@ class FlickerAPI {
     }
 
     class func getRandomPage()->Int{
+        print(numOfPages)
         return Int.random(in: 1...numOfPages)
     }
     

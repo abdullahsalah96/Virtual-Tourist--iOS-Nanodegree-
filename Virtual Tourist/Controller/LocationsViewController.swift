@@ -37,7 +37,11 @@ class LocationsViewController: UIViewController, NSFetchedResultsControllerDeleg
         fetchResultsController.delegate = self
         do{
             try fetchResultsController.performFetch()
-            selectedPin = fetchResultsController.object(at: IndexPath(item: 0, section: 0))
+            if fetchResultsController.fetchedObjects!.count > 0{
+                selectedPin = fetchResultsController.object(at: IndexPath(item: 0, section: 0))
+            }else{
+                self.selectedPin = Pin(context: self.dataController.viewContext)
+            }
         }catch{
             fatalError("Failed to load data from memory")
         }
@@ -190,8 +194,10 @@ extension LocationsViewController: MKMapViewDelegate{
         pin.location = location
         do{
             try dataController.viewContext.save()
+            print("Saving pin")
         }catch{
             fatalError(error.localizedDescription)
+            print("Error saving pin")
         }
     }
 }
