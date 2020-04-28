@@ -10,13 +10,13 @@ import UIKit
 import MapKit
 import CoreData
 
-class LocationsViewController: UIViewController, NSFetchedResultsControllerDelegate {
+class LocationsViewController: UIViewController{
     
     var dataController: DataController = DataController.shared
     var fetchResultsController: NSFetchedResultsController<Pin>!
     var photoResponses: [PhotoResponse] = []
     var selectedPin: Pin!
-    let numOfImagesToDsiplay = 20
+    let numOfImagesToDsiplay = 100
 
     @IBOutlet weak var mapView: MKMapView!
     override func viewDidLoad() {
@@ -24,6 +24,11 @@ class LocationsViewController: UIViewController, NSFetchedResultsControllerDeleg
         self.configureView()
         configureFetchResultsController()
         initializeMapView()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        fetchResultsController = nil
     }
     
     func configureFetchResultsController(){
@@ -97,21 +102,31 @@ extension LocationsViewController: MKMapViewDelegate{
             }
         })
     }
-
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let vc = segue.destination as? PhotoAlbumViewController{
-            guard selectedPin != nil else{return}
-            vc.pin = selectedPin //setting photo album pin
-//            vc.configureFetchResultsController() //fetch results so they are ready before loading view
-            //get images
-            FlickerAPI.getImagesResponse(long: selectedPin.longitude, lat: selectedPin.latitude, page: 1, perPage: numOfImagesToDsiplay, completionHandler: {
-                (responses, error) in
-                //check if responses not nill set them in collection view class
-                if let responses = responses{
-                    vc.photoResponses = responses
-                    vc.collectionView.reloadData()
-                }
-            })
+        // If this is a PhotoAlbumViewController, we'll configure its `Pin`
+        if let vc = segue.destination as? PhotoAlbumViewController {
+            if let pins = fetchResultsController.fetchedObjects {
+                // there will be only one selected annotation at a time
+                let annotation = mapView.selectedAnnotations[0]
+                // getting the index of the selected annotation to set pin value in destination VC
+                guard let indexPath = pins.firstIndex(where: {
+                    (pin) -> Bool in
+                    pin.latitude == annotation.coordinate.latitude && pin.longitude == annotation.coordinate.longitude
+                })else{return}
+                vc.pin = pins[indexPath]
+                FlickerAPI.getImagesResponse(long: selectedPin.longitude, lat: selectedPin.latitude, page: 1, perPage: numOfImagesToDsiplay, completionHandler: {
+                    (responses, error) in
+                    //check if responses not nill set them in collection view class
+                    if let responses = responses{
+                        vc.photoResponses = responses
+                        DispatchQueue.main.async {
+                            //reload collection view data
+                            vc.collectionView.reloadData()
+                        }
+                    }
+                })
+            }
         }
     }
     
@@ -194,10 +209,17 @@ extension LocationsViewController: MKMapViewDelegate{
         pin.location = location
         do{
             try dataController.viewContext.save()
-            print("Saving pin")
         }catch{
             fatalError(error.localizedDescription)
-            print("Error saving pin")
         }
+    }
+}
+
+extension LocationsViewController:NSFetchedResultsControllerDelegate {
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        try? fetchResultsController.performFetch()
+    }
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        try? fetchResultsController.performFetch()
     }
 }

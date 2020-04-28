@@ -109,6 +109,7 @@
                     <navigationItem key="navigationItem" id="qgh-Ph-MNV"/>
                     <connections>
                         <outlet property="collectionView" destination="yoM-ce-ZAb" id="46X-3Z-Qc4"/>
+                        <outlet property="newCollectionButton" destination="pg0-dB-x0g" id="CaD-nK-NJy"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gle-IR-zCQ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

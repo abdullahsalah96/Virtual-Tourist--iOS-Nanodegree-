@@ -4,23 +4,18 @@
 //
 //  Created by Abdalla Elshikh on 4/26/20.
 //  Copyright © 2020 Abdalla Elshikh. All rights reserved.
-//
-
-//TODO:
-//1- when new collection is pressed delete existing photos
-//2- DELETE DATA
-//3- MIGRATE TO USING FETCH REQUEST CONTROLLER
-
 import UIKit
 import CoreData
 
-class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDelegate {
+class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDelegate{
 
+    @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var collectionView: UICollectionView!
     var dataController = DataController.shared
     var photoResponses: [PhotoResponse] = []
     var fetchResultsController: NSFetchedResultsController<Photo>!
     var isDataSaved: Bool = false
+    var isNewCollectionPressed: Bool = false
     var pin: Pin!
     
     override func viewDidLoad() {
@@ -29,20 +24,17 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         configureCollectionView()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        fetchResultsController = nil
     }
     
     func configureFetchResultsController(){
         //create fetch request
         //sort descriptor, predicate and attach them to fetch results controller
-        print("Latitude: \(pin.latitude)")
-        print("Longitude: \(pin.longitude)")
-        print("Location: \(pin.location!)")
-        let fetchRequest:NSFetchRequest<Photo>!
+        let fetchRequest:NSFetchRequest<Photo> = Photo.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "createdAt", ascending: false)
-        let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin])
-        fetchRequest = Photo.fetchRequest()
+        let predicate = NSPredicate(format: "pin == %@", pin)
         fetchRequest.sortDescriptors = [sortDescriptor]
         fetchRequest.predicate = predicate
         fetchResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
@@ -52,43 +44,65 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         }catch{
             fatalError("Failed to load data from memory")
         }
+        //if number of fetched results >0 then we have data saved else download it
         let results = fetchResultsController.fetchedObjects!
         if results.count > 0 {
             isDataSaved = true
-            print("FETCH RESULTS Count ? : \(results.count)")
+            self.newCollectionButton.isEnabled = true
         }else{
-            print("No data saved")
             isDataSaved = false
+            self.newCollectionButton.isEnabled = false
         }
-        print(isDataSaved)
-        self.collectionView.reloadData()
     }
     
     func configureCollectionView(){
         //configure UI
         collectionView.delegate = self
         collectionView.dataSource = self
+        let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
+        let width = UIScreen.main.bounds.width
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        layout.itemSize = CGSize(width: width / 4, height: width / 5)
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 0
+        collectionView!.collectionViewLayout = layout
+    }
+    
+    
+    func loadPhoto(indexPath: IndexPath)->Photo?{
+        //get photo object at index
+        return fetchResultsController.object(at: indexPath)
     }
     
     func savePhoto(image: UIImage){
+        //save photo object to memory
         let photo = Photo(context: dataController.viewContext)
         photo.photo = image.pngData()
-        photo.createdAt = Date()
-        photo.pin = self.pin
+        photo.pin = pin
         do{
             try dataController.viewContext.save()
-            print("Saving picture")
         }catch{
-            print("Can't save picture")
+            fatalError(error.localizedDescription)
         }
-//        collectionView.reloadData()
+    }
+    
+    func deletePhoto(indexPath: IndexPath){
+        //delete photo from memoyr
+        let photo = fetchResultsController.object(at: indexPath)
+        dataController.viewContext.delete(photo)
+        do{
+            try dataController.viewContext.save()
+        }catch{
+            fatalError(error.localizedDescription)
+        }
+        configureFetchResultsController()
     }
     
     @IBAction func newCollectionPressed(_ sender:Any){
         //fetch new set of images
         //get random page number
+        self.newCollectionButton.isEnabled = false
         let page = FlickerAPI.getRandomPage()
-        print("Random Page: \(page)")
         FlickerAPI.getImagesResponse(long: pin.longitude, lat: pin.latitude, page:page, perPage: self.photoResponses.count, completionHandler: {
             (responses, error) in
             /*check if responses not nill set them in collection view class, delete existing images and
@@ -97,8 +111,10 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
             if let responses = responses{
                 self.photoResponses = responses
                 self.isDataSaved = false
-                self.collectionView.reloadData()
-                print("Found \(self.photoResponses.count) new images")
+                self.isNewCollectionPressed = true
+                DispatchQueue.main.async {
+                    self.collectionView.reloadData()
+                }
             }
         })
     }
@@ -108,7 +124,6 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
 extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource{
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-//        return fetchResultsController.sections?.count > ?? 1
         if isDataSaved{
             return fetchResultsController.sections!.count
         }else{
@@ -117,7 +132,6 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        return fetchResultsController.sections?[section].numberOfObjects ?? self.photoResponses.count
         if isDataSaved{
             return fetchResultsController.sections![section].numberOfObjects
         }else{
@@ -126,54 +140,56 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath)
         //delete image
         collectionView.deleteItems(at: [indexPath])
         deletePhoto(indexPath: indexPath)
         //reload table
-        collectionView.reloadData()
-    }
-    
-    func deletePhoto(indexPath: IndexPath){
-        let photo = fetchResultsController.object(at: indexPath)
-        dataController.viewContext.delete(photo)
-        do{
-            try dataController.viewContext.save()
-            print("deleted image")
-        }catch{
-            print("can't delete")
+        DispatchQueue.main.async {
+            collectionView.reloadData()
         }
-        //reload fetch results controller
-        configureFetchResultsController()
     }
-    
-    func loadPhoto(indexPath: IndexPath)->Photo?{
-        return fetchResultsController.object(at: indexPath)
-    }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         //populate cells
         let cell = self.collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as! ImageCell
         //check if there are images load them if not then download images
         if isDataSaved{
-            print("Loading data")
+            self.newCollectionButton.isEnabled = true
             //populate cells with them
             let pic = loadPhoto(indexPath: indexPath)
             let imgData = pic!.photo
             let img = UIImage(data: imgData!)
             cell.imageView.image = img
         }else{
-            print("Downloading data")
-            //download them
-            FlickerAPI.getImageAt(index: indexPath.row, response: self.photoResponses, completionHandler: {
-                (img, error) in
-                if let img = img {
-                    cell.imageView.image = img
-                    //save it to memory
-                    self.savePhoto(image: img)
-                }
-            })
+            downloadImagesAndReload(indexPath: indexPath, cell: cell)
         }
         return cell
+    }
+    
+    func downloadImagesAndReload(indexPath: IndexPath, cell: ImageCell){
+        //download them
+        FlickerAPI.getImageAt(index: indexPath.row, response: self.photoResponses, completionHandler: {
+            (img, error) in
+            if let img = img {
+                cell.imageView.image = img
+                //save it to memory
+                self.savePhoto(image: img)
+                //check if it's new collection then delete next image in memory
+                if(indexPath.row < self.fetchResultsController.fetchedObjects!.count - 1){
+                    //if it's not last photo
+                    if(self.isNewCollectionPressed){
+                        let newIndex = IndexPath(row: indexPath.row + 1, section: indexPath.section)
+                        self.deletePhoto(indexPath: newIndex)
+                    }
+                }
+                else{
+                    //last photo need to change boolean
+                    self.isNewCollectionPressed = false
+                    self.isDataSaved = true
+                    self.configureFetchResultsController() //reload fetch results controller
+                    self.collectionView.reloadData()
+                }
+            }
+        })
     }
 }
