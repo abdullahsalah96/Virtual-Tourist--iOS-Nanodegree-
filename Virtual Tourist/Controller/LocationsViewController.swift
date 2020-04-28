@@ -143,6 +143,10 @@ extension LocationsViewController: MKMapViewDelegate{
     
     @objc func addWaypoint(longGesture: UIGestureRecognizer) {
         //pin is placed
+        if(longGesture.state != .began){
+            //debouncing
+            return
+        }
         let touchPoint = longGesture.location(in: mapView)
         let wayCoords = mapView.convert(touchPoint, toCoordinateFrom: mapView)
         let wayAnnotation = MKPointAnnotation()

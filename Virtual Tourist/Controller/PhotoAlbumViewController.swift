@@ -161,6 +161,7 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
             let img = UIImage(data: imgData!)
             cell.imageView.image = img
         }else{
+            cell.imageView.image = UIImage(named: "placeholder")
             downloadImagesAndReload(indexPath: indexPath, cell: cell)
         }
         return cell
