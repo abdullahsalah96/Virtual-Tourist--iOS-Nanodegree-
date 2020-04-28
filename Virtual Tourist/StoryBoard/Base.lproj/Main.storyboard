@@ -64,11 +64,18 @@
                                             <rect key="frame" x="0.0" y="0.0" width="118" height="94"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iIm-NU-3UY" userLabel="img">
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="iIm-NU-3UY" userLabel="img">
                                                     <rect key="frame" x="0.0" y="0.0" width="118" height="94"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="94" id="Fwj-sB-Tfj"/>
+                                                        <constraint firstAttribute="width" constant="118" id="Os4-Xw-DVx"/>
+                                                    </constraints>
                                                 </imageView>
                                             </subviews>
+                                            <constraints>
+                                                <constraint firstItem="iIm-NU-3UY" firstAttribute="centerY" secondItem="F4t-OP-zbr" secondAttribute="centerY" id="OZc-A6-3Xp"/>
+                                                <constraint firstItem="iIm-NU-3UY" firstAttribute="centerX" secondItem="F4t-OP-zbr" secondAttribute="centerX" id="tPk-na-jq5"/>
+                                            </constraints>
                                         </collectionViewCellContentView>
                                         <size key="customSize" width="118" height="94"/>
                                         <connections>

@@ -196,8 +196,8 @@ extension LocationsViewController: MKMapViewDelegate{
             try dataController.viewContext.save()
             print("Saving pin")
         }catch{
-            print("Error saving pin")
             fatalError(error.localizedDescription)
+            print("Error saving pin")
         }
     }
 }

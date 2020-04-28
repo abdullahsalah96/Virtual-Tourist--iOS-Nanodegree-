@@ -21,7 +21,6 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     var photoResponses: [PhotoResponse] = []
     var fetchResultsController: NSFetchedResultsController<Photo>!
     var isDataSaved: Bool = false
-    var isNewCollection: Bool = false
     var pin: Pin!
     
     override func viewDidLoad() {
@@ -42,7 +41,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         print("Location: \(pin.location!)")
         let fetchRequest:NSFetchRequest<Photo>!
         let sortDescriptor = NSSortDescriptor(key: "createdAt", ascending: false)
-        let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin!])
+        let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin])
         fetchRequest = Photo.fetchRequest()
         fetchRequest.sortDescriptors = [sortDescriptor]
         fetchRequest.predicate = predicate
@@ -67,14 +66,6 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     
     func configureCollectionView(){
         //configure UI
-        let screenSize = UIScreen.main.bounds
-        let screenWidth = screenSize.width
-        let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        layout.itemSize = CGSize(width: screenWidth/4, height: screenWidth/4)
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 0
-        collectionView!.collectionViewLayout = layout
         collectionView.delegate = self
         collectionView.dataSource = self
     }
@@ -86,28 +77,16 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         photo.pin = self.pin
         do{
             try dataController.viewContext.save()
-            print("Saving picture for pin: \(pin.location)")
+            print("Saving picture")
         }catch{
             print("Can't save picture")
         }
         collectionView.reloadData()
     }
     
-    func deletePhoto(indexPath: IndexPath){
-        let photo = fetchResultsController.object(at: indexPath)
-        dataController.viewContext.delete(photo)
-        do{
-            try dataController.viewContext.save()
-            print("Deleting picture at index: \(indexPath.row)")
-        }catch{
-            print("Can't delete picture")
-        }
-    }
-    
     @IBAction func newCollectionPressed(_ sender:Any){
         //fetch new set of images
         //get random page number
-        isNewCollection = true
         let page = FlickerAPI.getRandomPage()
         print("Random Page: \(page)")
         FlickerAPI.getImagesResponse(long: pin.longitude, lat: pin.latitude, page:page, perPage: self.photoResponses.count, completionHandler: {
@@ -117,15 +96,17 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
             */
             if let responses = responses{
                 self.photoResponses = responses
-                self.isDataSaved = false
+//                self.isDataSaved = false
                 self.collectionView.reloadData()
                 print("Found \(self.photoResponses.count) new images")
             }
         })
     }
+    
 }
 
 extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource{
+    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
 //        return fetchResultsController.sections?.count > ?? 1
         if isDataSaved{
@@ -145,11 +126,9 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath)
         //delete image
         collectionView.deleteItems(at: [indexPath])
-        self.deletePhoto(indexPath: indexPath)
-        //reload fetchResultsController
-        configureFetchResultsController()
 //        collectionView.remove
     }
     
@@ -162,7 +141,7 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
         let cell = self.collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as! ImageCell
         //check if there are images load them if not then download images
         if isDataSaved{
-            print("Loading data for pin \(pin.location!)")
+            print("Loading data")
             //populate cells with them
             let pic = loadPhoto(indexPath: indexPath)
             let imgData = pic!.photo
@@ -177,15 +156,6 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
                     cell.imageView.image = img
                     //save it to memory
                     self.savePhoto(image: img)
-                    //if new collection pressed delete next image
-                    if(self.isNewCollection){
-                        let newIndex = IndexPath(row: indexPath.row + 1, section: indexPath.section)
-                        if (newIndex.row < self.photoResponses.count){
-                            self.deletePhoto(indexPath: newIndex)
-                        }else{
-                            print("Deleted all images")
-                        }
-                    }
                 }
             })
         }
