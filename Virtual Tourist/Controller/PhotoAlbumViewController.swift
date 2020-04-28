@@ -81,7 +81,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         }catch{
             print("Can't save picture")
         }
-        collectionView.reloadData()
+//        collectionView.reloadData()
     }
     
     @IBAction func newCollectionPressed(_ sender:Any){
