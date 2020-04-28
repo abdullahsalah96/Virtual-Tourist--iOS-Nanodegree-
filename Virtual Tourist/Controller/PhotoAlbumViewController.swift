@@ -7,7 +7,7 @@
 //
 
 //TODO:
-//1- LOAD/SAVE DATA IN MEMEORY
+//1- when new collection is pressed delete existing photos
 //2- DELETE DATA
 //3- MIGRATE TO USING FETCH REQUEST CONTROLLER
 
@@ -96,7 +96,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
             */
             if let responses = responses{
                 self.photoResponses = responses
-//                self.isDataSaved = false
+                self.isDataSaved = false
                 self.collectionView.reloadData()
                 print("Found \(self.photoResponses.count) new images")
             }
@@ -129,7 +129,22 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath)
         //delete image
         collectionView.deleteItems(at: [indexPath])
-//        collectionView.remove
+        deletePhoto(indexPath: indexPath)
+        //reload table
+        collectionView.reloadData()
+    }
+    
+    func deletePhoto(indexPath: IndexPath){
+        let photo = fetchResultsController.object(at: indexPath)
+        dataController.viewContext.delete(photo)
+        do{
+            try dataController.viewContext.save()
+            print("deleted image")
+        }catch{
+            print("can't delete")
+        }
+        //reload fetch results controller
+        configureFetchResultsController()
     }
     
     func loadPhoto(indexPath: IndexPath)->Photo?{
