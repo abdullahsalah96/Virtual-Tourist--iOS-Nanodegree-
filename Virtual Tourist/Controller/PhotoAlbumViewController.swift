@@ -90,6 +90,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         }catch{
             print("Can't save picture")
         }
+        collectionView.reloadData()
     }
     
     func deletePhoto(indexPath: IndexPath){
