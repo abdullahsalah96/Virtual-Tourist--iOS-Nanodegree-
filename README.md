@@ -8,12 +8,12 @@ The App consists of two view controllers:
 
 - Map View Controller:
 <p align="center">
-  <img src="docs/MapView.png" width="149" height="300">
+  <img src="docs/MapView.png" width="149" height="260">
 </p>
 
 - Photo Album View Controller:
 <p align="center">
-  <img src="docs/PhotoAlbum.png" width="149" height="300">
+  <img src="docs/PhotoAlbum.png" width="149" height="260">
 </p>
 
 ## Dependencies:
