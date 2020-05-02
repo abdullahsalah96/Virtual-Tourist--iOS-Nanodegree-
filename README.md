@@ -15,3 +15,9 @@ The App consists of two view controllers:
 <p align="center">
   <img src="docs/PhotoAlbum.png" width="149" height="300">
 </p>
+
+##Dependencies:
+- Apple UIKit
+- Apple CoreData
+- Apple MapKit
+- FlickrAPI
