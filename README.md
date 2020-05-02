@@ -16,7 +16,7 @@ The App consists of two view controllers:
   <img src="docs/PhotoAlbum.png" width="149" height="300">
 </p>
 
-##Dependencies:
+## Dependencies:
 - Apple UIKit
 - Apple CoreData
 - Apple MapKit
